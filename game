@@ -1,4 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => {
+javascript:(function(){
+    const canvas = document.createElement('canvas');
+    canvas.id = 'gameCanvas';
+    canvas.width = 400;
+    canvas.height = 400;
+    document.body.appendChild(canvas);
+
+    // Rest of the game code goes here...
+    document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.createElement('canvas');
     canvas.id = 'gameCanvas';
     canvas.width = 400;
@@ -236,3 +244,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+})();

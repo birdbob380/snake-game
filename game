@@ -1,1 +1,126 @@
-javascript:!function(){let e=document.createElement("canvas");e.id="gameCanvas",e.width=400,e.height=400,document.body.appendChild(e);let n=e.getContext("2d"),t=document.createElement("input");t.type="color",t.id="backgroundColor",t.value="#ffffff",document.body.insertBefore(t,e.nextSibling);let i=document.createElement("button");i.id="playButton",i.innerText="Play",document.body.appendChild(i);let o=document.createElement("button");o.id="pauseButton",o.innerText="Pause",o.disabled=!0,document.body.appendChild(o);let r=document.createElement("button");r.id="quitButton",r.innerText="Quit",document.body.appendChild(r);let d=document.createElement("div");d.id="score",d.innerText="Score: 0",document.body.appendChild(d);let l=document.createElement("div");l.id="highScores",l.innerText="High Scores:",document.body.appendChild(l);let $=document.createElement("button");$.id="normalModeButton",$.innerText="Normal Mode",document.body.appendChild($);let a=document.createElement("button");a.id="infiniteModeButton",a.innerText="Infinite Mode",document.body.appendChild(a);let c=[{x:10,y:10}],y={x:15,y:10},s=0,u=0,f,x=!1,h=!1,m=0,p=JSON.parse(localStorage.getItem("snakeHighScores"))||[],b="normal";function g(){y={x:Math.floor(20*Math.random()),y:Math.floor(20*Math.random())}}function E(){n.clearRect(0,0,e.width,e.height),c.forEach(e=>{n.fillStyle="#4CAF50",n.fillRect(20*e.x,20*e.y,20,20)}),n.fillStyle="red",n.beginPath(),n.arc((y.x+.5)*20,(y.y+.5)*20,10,0,2*Math.PI),n.fill(),function e(){let n={x:c[0].x+s,y:c[0].y+u};"infinite"===b&&(n.x<0&&(n.x=19),n.x>=20&&(n.x=0),n.y<0&&(n.y=19),n.y>=20&&(n.y=0)),c.unshift(n),n.x===y.x&&n.y===y.y?(g(),m+=10,document.getElementById("score").innerText="Score: "+m):c.pop(),"normal"!==b||!(c[0].x<0||c[0].x>=20||c[0].y<0||c[0].y>=20||c.slice(1).some(e=>e.x===c[0].x&&e.y===c[0].y))||(clearInterval(f),x=!1,o.disabled=!0,m>0&&(p.push(m),p.sort((e,n)=>n-e),p=p.slice(0,5),localStorage.setItem("snakeHighScores",JSON.stringify(p)),k()),m=0,document.getElementById("score").innerText="Score: "+m,alert("Game Over! Your score: "+m))}()}function _(){x&&(h?(f=setInterval(E,75),o.innerText="Pause"):(clearInterval(f),o.innerText="Resume"),h=!h)}function k(){let e=document.getElementById("highScores");e.innerHTML="High Scores:<br>",p.forEach((n,t)=>{e.innerHTML+=t+1+". "+n+"<br>"})}i.addEventListener("click",function e(){x||(c=[{x:10,y:10}],s=0,u=0,g(),f=setInterval(E,75),x=!0,o.disabled=!1)}),o.addEventListener("click",_),r.addEventListener("click",function e(){clearInterval(f),x=!1,m=0,document.getElementById("score").innerText="Score: "+m,alert("Game Quit!")}),$.addEventListener("click",function e(){b="normal",i.innerText="Play Normal Mode"}),a.addEventListener("click",function e(){b="infinite",i.innerText="Play Infinite Mode"}),t.addEventListener("change",function n(){let i=t.value;e.style.backgroundColor=i}),k(),document.addEventListener("keydown",e=>{"ArrowUp"===e.key&&0===u?(s=0,u=-1):"ArrowDown"===e.key&&0===u?(s=0,u=1):"ArrowLeft"===e.key&&0===s?(s=-1,u=0):"ArrowRight"===e.key&&0===s?(s=1,u=0):("p"===e.key||"P"===e.key)&&_()})}();
+// Define the function within an immediately invoked function expression (IIFE) to avoid global namespace pollution
+(function() {
+    // Create canvas element and set its attributes
+    let canvas = document.createElement("canvas");
+    canvas.id = "gameCanvas";
+    canvas.width = 400;
+    canvas.height = 400;
+    document.body.appendChild(canvas);
+    
+    // Get 2D rendering context
+    let ctx = canvas.getContext("2d");
+
+    // Create color input element for background color
+    let colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.id = "backgroundColor";
+    colorInput.value = "#ffffff";
+    document.body.insertBefore(colorInput, canvas.nextSibling);
+
+    // Create buttons for play, pause, quit
+    let playButton = document.createElement("button");
+    playButton.id = "playButton";
+    playButton.innerText = "Play";
+    document.body.appendChild(playButton);
+
+    let pauseButton = document.createElement("button");
+    pauseButton.id = "pauseButton";
+    pauseButton.innerText = "Pause";
+    pauseButton.disabled = true;
+    document.body.appendChild(pauseButton);
+
+    let quitButton = document.createElement("button");
+    quitButton.id = "quitButton";
+    quitButton.innerText = "Quit";
+    document.body.appendChild(quitButton);
+
+    // Create elements for score and high scores
+    let scoreElement = document.createElement("div");
+    scoreElement.id = "score";
+    scoreElement.innerText = "Score: 0";
+    document.body.appendChild(scoreElement);
+
+    let highScoresElement = document.createElement("div");
+    highScoresElement.id = "highScores";
+    highScoresElement.innerText = "High Scores:";
+    document.body.appendChild(highScoresElement);
+
+    // Create buttons for game modes
+    let normalModeButton = document.createElement("button");
+    normalModeButton.id = "normalModeButton";
+    normalModeButton.innerText = "Normal Mode";
+    document.body.appendChild(normalModeButton);
+
+    let infiniteModeButton = document.createElement("button");
+    infiniteModeButton.id = "infiniteModeButton";
+    infiniteModeButton.innerText = "Infinite Mode";
+    document.body.appendChild(infiniteModeButton);
+
+    // Array to store snake segments and other variables
+    let snakeSegments = [{x: 10, y: 10}];
+    let food = {x: 15, y: 10};
+    let score = 0;
+    let dx = 0;
+    let dy = 0;
+    let running = false;
+    let paused = false;
+    let intervalId = 0;
+    let mode = "normal";
+    let highScores = JSON.parse(localStorage.getItem("snakeHighScores")) || [];
+
+    // Function to generate food position
+    function generateFood() {
+        food = {x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20)};
+    }
+
+    // Function to draw game
+    function draw() {
+        // Drawing code here
+    }
+
+    // Function to handle key press events
+    function handleKeyPress(event) {
+        // Key press handling code here
+    }
+
+    // Function to start or restart the game
+    function startGame() {
+        // Game start code here
+    }
+
+    // Function to pause or resume the game
+    function togglePause() {
+        // Pause/resume code here
+    }
+
+    // Function to end the game
+    function endGame() {
+        // Game over code here
+    }
+
+    // Function to switch to normal mode
+    function switchToNormalMode() {
+        // Mode switch code here
+    }
+
+    // Function to switch to infinite mode
+    function switchToInfiniteMode() {
+        // Mode switch code here
+    }
+
+    // Function to update high scores
+    function updateHighScores() {
+        // High scores update code here
+    }
+
+    // Event listeners for buttons
+    playButton.addEventListener("click", startGame);
+    pauseButton.addEventListener("click", togglePause);
+    quitButton.addEventListener("click", endGame);
+    normalModeButton.addEventListener("click", switchToNormalMode);
+    infiniteModeButton.addEventListener("click", switchToInfiniteMode);
+    colorInput.addEventListener("change", function() {
+        canvas.style.backgroundColor = colorInput.value;
+    });
+    document.addEventListener("keydown", handleKeyPress);
+})();
